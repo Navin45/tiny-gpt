@@ -1,0 +1,35 @@
+# True end-to-end smoke test: validate data → model → loss → checkpoint in under a minute.
+vocab_size: 512
+max_seq_len: 64
+d_model: 64
+n_layers: 2
+n_heads: 4
+n_kv_heads: 2
+head_dim: 16
+rope_theta: 10000.0
+ffn_multiplier: 3.5
+moe_layers_every: 2
+n_experts: 2
+moe_top_k: 1
+moe_aux_loss_coef: 0.01
+dropout: 0.0
+use_checkpointing: false
+mask_document_boundaries: false
+
+batch_size: 2
+grad_accum_steps: 2
+learning_rate: 0.0003
+weight_decay: 0.1
+betas: [0.9, 0.95]
+max_grad_norm: 1.0
+warmup_steps: 2
+max_steps: 20
+min_lr_ratio: 0.1
+log_every: 1
+eval_every: 10
+save_every: 10
+seed: 1337
+
+token_bin: artifacts/data/train.bin
+val_token_bin: artifacts/data/val.bin
+checkpoint_dir: artifacts/checkpoints/smoke

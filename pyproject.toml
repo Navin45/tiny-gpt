@@ -1,0 +1,38 @@
+[project]
+name = "tiny-gpt"
+version = "0.1.0"
+description = "From-scratch PyTorch decoder-only LLM training stack for learning (Tiny-GPT)."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "torch>=2.6",
+  "numpy>=2.0",
+  "tokenizers>=0.20",
+  "pyyaml>=6.0",
+  "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+quality = [
+  "ruff>=0.11",
+  "pytest>=8.0",
+]
+data = [
+  "datasets>=3.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tiny_gpt"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
