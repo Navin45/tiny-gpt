@@ -66,7 +66,11 @@ def main():
 
     cfg = Config.from_dict(yaml.safe_load(open(args.config)))
     tokenizer = load_tokenizer(args.tokenizer)
-    cfg.model.vocab_size = tokenizer.get_vocab_size()
+    assert cfg.model.vocab_size == tokenizer.get_vocab_size(), (
+        f"config vocab_size={cfg.model.vocab_size} != tokenizer "
+        f"vocab_size={tokenizer.get_vocab_size()}; re-run train_tokenizer.py "
+        f"with this --config or fix the mismatch"
+    )
     pad_id = tokenizer.token_to_id("<|pad|>")
     if pad_id is None:
         raise SystemExit("Tokenizer is missing <|pad|>")

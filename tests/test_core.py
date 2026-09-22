@@ -256,8 +256,10 @@ def test_tokenizer_encode_decode_reversibility(tmp_path: Path):
         "Mixture of experts routes tokens sparsely.",
     ] * 20
     out = tmp_path / "tok"
-    train_bpe(corpus, vocab_size=200, output_dir=str(out))
+    actual = train_bpe(corpus, vocab_size=200, output_dir=str(out))
     tok = load_tokenizer(out / "tokenizer.json")
+    assert actual == tok.get_vocab_size()
+    assert actual <= 200
 
     sample = "The capital of India is New Delhi."
     ids = tok.encode(sample).ids
@@ -266,3 +268,24 @@ def test_tokenizer_encode_decode_reversibility(tmp_path: Path):
     assert "capital of India" in decoded
     assert "New Delhi" in decoded
     assert "{" not in decoded and '"text"' not in decoded
+
+
+def test_train_tokenizer_updates_config_vocab_size(tmp_path: Path):
+    import importlib.util
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "train_tokenizer.py"
+    spec = importlib.util.spec_from_file_location("train_tokenizer", script)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+
+    cfg = tmp_path / "cfg.yaml"
+    cfg.write_text(
+        "# comment\nvocab_size: 500\nmax_seq_len: 64\nd_model: 64\n",
+        encoding="utf-8",
+    )
+    mod._update_config_vocab_size(cfg, 321)
+    text = cfg.read_text(encoding="utf-8")
+    assert "vocab_size: 321" in text
+    assert text.startswith("# comment")
+    assert "max_seq_len: 64" in text

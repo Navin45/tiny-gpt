@@ -26,8 +26,12 @@ SPECIAL_TOKENS = [
 ]
 
 
-def train_bpe(texts: Iterable[str], vocab_size: int, output_dir: str) -> None:
+def train_bpe(texts: Iterable[str], vocab_size: int, output_dir: str) -> int:
     """Train a byte-level BPE tokenizer from plain-text strings and save tokenizer.json.
+
+    ``vocab_size`` is the BPE merge *target* (upper bound). The returned value is the
+    actual vocabulary size after training, which may be smaller when the corpus cannot
+    fill the target.
 
     Pass an iterator of document strings (e.g. via ``jsonl_texts``), never raw JSONL file
     paths. The Hugging Face ``Tokenizer.train(files, ...)`` API reads each line of a file as
@@ -48,6 +52,7 @@ def train_bpe(texts: Iterable[str], vocab_size: int, output_dir: str) -> None:
     out.mkdir(parents=True, exist_ok=True)
     tokenizer.save(str(out / "tokenizer.json"))
     (out / "special_tokens.txt").write_text("\n".join(SPECIAL_TOKENS), encoding="utf-8")
+    return tokenizer.get_vocab_size()
 
 
 def load_tokenizer(path: str | Path) -> Tokenizer:

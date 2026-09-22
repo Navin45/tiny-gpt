@@ -23,7 +23,11 @@ def main():
 
     cfg = Config.from_dict(yaml.safe_load(open(args.config)))
     tok = load_tokenizer(args.tokenizer)
-    cfg.model.vocab_size = tok.get_vocab_size()
+    assert cfg.model.vocab_size == tok.get_vocab_size(), (
+        f"config vocab_size={cfg.model.vocab_size} != tokenizer "
+        f"vocab_size={tok.get_vocab_size()}; re-run train_tokenizer.py "
+        f"with this --config or fix the mismatch"
+    )
     model = TinyGPT(cfg.model)
     model.load_state_dict(torch.load(args.checkpoint, map_location="cpu")["model"])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

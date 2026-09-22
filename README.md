@@ -26,13 +26,14 @@ Optional tiny corpus for a plumbing run:
 uv run python scripts/get_smoke_data.py
 ```
 
-Train tokenizer (`{"text": "..."}` JSONL):
+Train tokenizer (`{"text": "..."}` JSONL). Reads `vocab_size` from the config as the
+BPE merge target, then writes the actual trained size back into that YAML:
 
 ```bash
 uv run python scripts/train_tokenizer.py \
   --input artifacts/data/train.jsonl \
   --output-dir artifacts/tokenizer \
-  --vocab-size 32000
+  --config configs/small.yaml
 ```
 
 Encode corpus:

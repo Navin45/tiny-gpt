@@ -28,10 +28,11 @@ flowchart TD
 uv run python scripts/get_smoke_data.py
 
 # Expects {"text": "..."} lines you placed under artifacts/data/
+# vocab_size in the config is the BPE target; the script rewrites it to the actual size.
 uv run python scripts/train_tokenizer.py \
   --input artifacts/data/train.jsonl \
   --output-dir artifacts/tokenizer \
-  --vocab-size 32000
+  --config configs/small.yaml
 
 uv run python scripts/encode_corpus.py \
   --input artifacts/data/train.jsonl \
