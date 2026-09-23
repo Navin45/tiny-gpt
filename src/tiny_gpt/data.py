@@ -10,16 +10,21 @@ import torch
 from torch.utils.data import Dataset
 
 
-def jsonl_texts(path: str | Path):
-    """Yield text fields from a JSONL corpus."""
+def jsonl_rows(path: str | Path):
+    """Yield decoded JSON objects from a JSONL file, skipping blank lines."""
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
             if not line.strip():
                 continue
-            row = json.loads(line)
-            text = row.get("text")
-            if isinstance(text, str) and text:
-                yield text
+            yield json.loads(line)
+
+
+def jsonl_texts(path: str | Path):
+    """Yield non-empty ``text`` fields from a JSONL corpus."""
+    for row in jsonl_rows(path):
+        text = row.get("text")
+        if isinstance(text, str) and text:
+            yield text
 
 
 def document_ids(input_ids: torch.Tensor, eos_token_id: int) -> torch.Tensor:

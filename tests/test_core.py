@@ -11,6 +11,7 @@ import torch
 
 from tiny_gpt.checkpoint import load_checkpoint, save_checkpoint
 from tiny_gpt.config import ModelConfig
+from tiny_gpt.corpus import prepare_jsonl, quality_reject_reason
 from tiny_gpt.data import TokenDataset
 from tiny_gpt.model import TinyGPT
 from tiny_gpt.posttrain import dpo_loss, next_token_labels, render_messages, token_logprob
@@ -289,3 +290,58 @@ def test_train_tokenizer_updates_config_vocab_size(tmp_path: Path):
     assert "vocab_size: 321" in text
     assert text.startswith("# comment")
     assert "max_seq_len: 64" in text
+
+
+def _write_text_jsonl(path: Path, texts: list[str]) -> None:
+    import json
+
+    path.write_text(
+        "".join(json.dumps({"text": text}) + "\n" for text in texts),
+        encoding="utf-8",
+    )
+
+
+def test_quality_reject_reason_flags_symbol_url_and_repetition():
+    assert quality_reject_reason("!" * 80, min_chars=10) == "symbol_ratio"
+    urls = " ".join(["https://example.com/a"] * 8)
+    assert quality_reject_reason(urls, min_chars=10) == "url_ratio"
+    repeated = "alpha beta gamma delta epsilon " * 8
+    assert quality_reject_reason(repeated, min_chars=10) == "repetitive"
+
+
+def test_prepare_jsonl_dedup_quality_and_contamination(tmp_path: Path):
+    keep = (
+        "A unique paragraph about mixture of experts routing tokens through a small decoder "
+        "without copying the eval set."
+    )
+    first = "Hello World from the corpus filter test case and extra words"
+    eval_sentence = "the capital of india is new delhi today"
+    leaked = f"lecture notes say {eval_sentence} in this long training document"
+    train = tmp_path / "train.jsonl"
+    eval_path = tmp_path / "eval.jsonl"
+    output = tmp_path / "clean.jsonl"
+    _write_text_jsonl(
+        train,
+        [
+            keep,
+            first,
+            "hello   world from the corpus filter test case and extra words",
+            "hi",
+            "\n".join(["same line repeated"] * 6),
+            leaked,
+            leaked,
+        ],
+    )
+    _write_text_jsonl(eval_path, [eval_sentence])
+
+    stats = prepare_jsonl(train, output, eval_path, min_chars=40)
+    kept = [line for line in output.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+    assert stats.seen == 7
+    assert stats.kept == 2
+    assert stats.dropped["exact_dup"] == 2
+    assert stats.dropped["too_short"] == 1
+    assert stats.dropped["repetitive"] == 1
+    assert stats.dropped["contaminated"] == 1
+    assert keep in kept[0]
+    assert "Hello World" in kept[1]

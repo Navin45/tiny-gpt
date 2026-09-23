@@ -28,7 +28,7 @@ Accept a larger model only if it beats the previous step on the **same** evals a
 
 Quality of `artifacts/data/*.jsonl` matters more than diagram tweaks. See [data.md](data.md).
 
-Typical later concerns (not implemented here): dedup, quality filtering, contamination checks vs your eval set, versioned mixtures.
+`scripts/prepare_corpus.py` does exact dedup, heuristic quality filters, and n-gram contamination checks against an eval JSONL. Still later: MinHash near-dedup, a learned quality classifier, versioned mixtures.
 
 ## Systems (later)
 

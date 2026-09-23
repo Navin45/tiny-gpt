@@ -25,3 +25,16 @@ uv sync --extra data
 ```
 
 Do not confuse corpus prep with model training: training never downloads text.
+
+## Cleaning pretrain JSONL
+
+For a real corpus, filter `{"text": ...}` before tokenizer training. The smoke Shakespeare split is too small for this step.
+
+```bash
+uv run python scripts/prepare_corpus.py \
+  --input artifacts/data/train.jsonl \
+  --eval artifacts/data/eval.jsonl \
+  --output artifacts/data/train.clean.jsonl
+```
+
+That pass drops exact duplicates (after whitespace and case folding), documents that are very short, symbol-heavy, URL-heavy, or repetitive, and documents that share an 8-word span with the eval file. `--eval` is optional. MinHash near-duplicates and a trained quality classifier are not part of this script.

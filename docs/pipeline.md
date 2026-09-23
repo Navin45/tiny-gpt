@@ -27,6 +27,13 @@ flowchart TD
 # Optional: tiny public-domain JSONL for plumbing only
 uv run python scripts/get_smoke_data.py
 
+# Optional for a real corpus: exact dedup, heuristic quality, eval contamination.
+# Skip this on the smoke split. Then point tokenizer/encode at the cleaned file.
+uv run python scripts/prepare_corpus.py \
+  --input artifacts/data/train.jsonl \
+  --eval artifacts/data/eval.jsonl \
+  --output artifacts/data/train.clean.jsonl
+
 # Expects {"text": "..."} lines you placed under artifacts/data/
 # vocab_size in the config is the BPE target; the script rewrites it to the actual size.
 uv run python scripts/train_tokenizer.py \
